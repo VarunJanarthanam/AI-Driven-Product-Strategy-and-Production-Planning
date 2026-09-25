@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Manufacturing Intelligence — Enhanced Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:   #2563eb; --green:  #22c55e; --amber:  #f59e0b;
+      --red:    #ef4444; --purple: #8b5cf6; --teal:   #0d9488;
+      --indigo: #4f46e5; --slate:  #475569; --light:  #f1f5f9;
+      --white:  #ffffff; --shadow: 0 4px 24px rgba(0,0,0,0.09);
+    }
+    body { font-family: "Segoe UI", Arial, sans-serif; background: linear-gradient(135deg,#e2e8f0,#f8fafc); min-height:100vh; padding:24px 18px; color:#1e293b; }
+
+    /* ── Header ── */
+    .header { text-align:center; margin-bottom:28px; }
+    .header h1 { font-size:1.9rem; font-weight:800; background:linear-gradient(135deg,#1e40af,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .header p  { color:var(--slate); margin-top:5px; font-size:0.9rem; }
+    .badges { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+    .badge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:0.78rem; font-weight:700; }
+    .badge-blue   { background:#dbeafe; color:#1d4ed8; }
+    .badge-green  { background:#dcfce7; color:#166534; }
+    .badge-purple { background:#ede9fe; color:#5b21b6; }
+    .badge-amber  { background:#fef9c3; color:#92400e; }
+    .badge-teal   { background:#ccfbf1; color:#0f766e; }
+
+    /* ── Filter bar ── */
+    .filter-card { background:var(--white); border-radius:14px; padding:18px 24px; box-shadow:var(--shadow); margin-bottom:22px; }
+    .filter-card h3 { font-size:0.8rem; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); margin-bottom:12px; }
+    .filter-row { display:grid; grid-template-columns:repeat(3,1fr) auto; gap:14px; align-items:end; }
+    .fg label  { display:block; font-size:.78rem; font-weight:700; color:var(--slate); margin-bottom:5px; }
+    .fg select { width:100%; padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:9px; font-size:.88rem; background:var(--light); }
+    .fg select:focus { outline:none; border-color:var(--blue); }
+    .btn { padding:9px 22px; background:var(--blue); color:white; border:none; border-radius:9px; font-weight:700; font-size:.88rem; cursor:pointer; transition:background .2s; }
+    .btn:hover { background:#1d4ed8; }
+
+    /* ── Tab nav ── */
+    .tab-nav { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px; background:var(--white); border-radius:14px; padding:10px 14px; box-shadow:var(--shadow); }
+    .tab-btn { padding:8px 18px; border:none; border-radius:8px; font-size:.82rem; font-weight:700; cursor:pointer; background:var(--light); color:var(--slate); transition:all .2s; white-space:nowrap; }
+    .tab-btn.active   { background:var(--blue); color:white; }
+    .tab-btn:hover:not(.active) { background:#e2e8f0; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* ── KPI grid ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .kpi-card { background:var(--white); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); border-top:4px solid var(--blue); position:relative; overflow:hidden; }
+    .kpi-card.green  { border-top-color:var(--green);  }
+    .kpi-card.amber  { border-top-color:var(--amber);  }
+    .kpi-card.red    { border-top-color:var(--red);    }
+    .kpi-card.purple { border-top-color:var(--purple); }
+    .kpi-card.teal   { border-top-color:var(--teal);   }
+    .kpi-card.indigo { border-top-color:var(--indigo); }
+    .kpi-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--slate); font-weight:700; }
+    .kpi-value { font-size:1.85rem; font-weight:800; margin-top:5px; line-height:1; }
+    .kpi-sub   { font-size:.72rem; color:var(--slate); margin-top:3px; }
+    .kpi-icon  { position:absolute; right:14px; top:14px; font-size:1.6rem; opacity:.13; }
+
+    /* ── Section ── */
+    .section-title { font-size:1rem; font-weight:700; color:#1e293b; margin-bottom:14px; padding-left:10px; border-left:4px solid var(--blue); }
+    .section-title.green  { border-left-color:var(--green);  }
+    .section-title.purple { border-left-color:var(--purple); }
+    .section-title.amber  { border-left-color:var(--amber);  }
+    .section-title.teal   { border-left-color:var(--teal);   }
+    .section-title.indigo { border-left-color:var(--indigo); }
+
+    /* ── Charts ── */
+    .charts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-bottom:24px; }
+    .charts-grid.one  { grid-template-columns:1fr; }
+    .charts-grid.three{ grid-template-columns:repeat(3,1fr); }
+    .chart-card { background:var(--white); border-radius:14px; padding:18px; box-shadow:var(--shadow); }
+    .chart-card h4 { font-size:.82rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; }
+    .chart-card img { width:100%; border-radius:8px; }
+
+    /* ── Info cards ── */
+    .info-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+    .info-card  { background:var(--white); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+    .info-card h4 { font-size:.82rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; }
+    .info-val { font-size:1.6rem; font-weight:800; }
+    .info-sub { font-size:.75rem; color:var(--slate); margin-top:3px; }
+
+    /* ── Table ── */
+    .table-card { background:var(--white); border-radius:14px; padding:20px 22px; box-shadow:var(--shadow); margin-bottom:24px; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    thead th { background:var(--light); padding:9px 12px; text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--slate); font-weight:700; }
+    tbody tr { border-bottom:1px solid #f1f5f9; }
+    tbody tr:hover { background:#f8fafc; }
+    tbody td { padding:9px 12px; }
+    .pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:700; }
+    .pill-green  { background:#dcfce7; color:#166534; }
+    .pill-amber  { background:#fef9c3; color:#92400e; }
+    .pill-red    { background:#fee2e2; color:#991b1b; }
+    .pill-blue   { background:#dbeafe; color:#1e40af; }
+    .pill-purple { background:#ede9fe; color:#5b21b6; }
+    .pill-teal   { background:#ccfbf1; color:#0f766e; }
+
+    /* ── Predict panel ── */
+    .predict-panel { background:var(--white); border-radius:14px; padding:24px 26px; box-shadow:var(--shadow); margin-bottom:24px; }
+    .predict-panel h3 { font-size:1rem; font-weight:700; margin-bottom:16px; }
+    .predict-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .pg label { display:block; font-size:.78rem; font-weight:700; color:var(--slate); margin-bottom:4px; }
+    .pg input,.pg select { width:100%; padding:8px 11px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:.86rem; background:var(--light); }
+    .pg input:focus,.pg select:focus { outline:none; border-color:var(--blue); }
+    .btn-predict { margin-top:16px; padding:10px 28px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:white; border:none; border-radius:9px; font-weight:700; font-size:.88rem; cursor:pointer; }
+    .btn-predict:hover { opacity:.9; }
+    .predict-result { margin-top:18px; padding:16px 20px; border-radius:12px; display:flex; align-items:center; gap:14px; }
+    .predict-result .rv { font-size:1.3rem; font-weight:800; color:white; }
+    .predict-result .rl { font-size:.75rem; font-weight:700; color:white; opacity:.8; text-transform:uppercase; }
+    .predict-result .rc { font-size:.82rem; color:white; opacity:.75; margin-top:2px; }
+
+    /* ── Voting ── */
+    .vote-grid { display:grid; gap:12px; margin-bottom:18px; }
+    .vote-item { background:var(--light); border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+    .vote-item .vi-text h5 { font-size:.9rem; font-weight:700; margin-bottom:3px; }
+    .vote-item .vi-text p  { font-size:.78rem; color:var(--slate); }
+    .vote-item .vi-right   { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .vote-bar-wrap { width:140px; background:#e2e8f0; border-radius:20px; height:8px; }
+    .vote-bar      { height:8px; border-radius:20px; background:var(--blue); transition:width .4s; }
+    .vote-count    { font-size:.9rem; font-weight:800; color:var(--blue); min-width:28px; text-align:right; }
+    .vote-btn      { padding:5px 14px; background:var(--blue); color:white; border:none; border-radius:8px; font-weight:700; font-size:.78rem; cursor:pointer; }
+    .vote-btn:hover { background:#1d4ed8; }
+
+    /* ── Feedback ── */
+    .feedback-list { display:grid; gap:10px; margin-bottom:18px; }
+    .fb-item { background:var(--light); border-radius:10px; padding:12px 16px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .fb-text { font-size:.86rem; flex:1; }
+    .fb-submit { display:flex; gap:10px; margin-top:10px; }
+    .fb-submit input { flex:1; padding:9px 14px; border:1.5px solid #e2e8f0; border-radius:9px; font-size:.86rem; background:var(--white); }
+    .fb-submit button { padding:9px 22px; background:var(--green); color:white; border:none; border-radius:9px; font-weight:700; cursor:pointer; font-size:.86rem; }
+    .sentiment-summary { display:flex; gap:14px; margin-bottom:16px; }
+    .sent-box { padding:10px 18px; border-radius:10px; text-align:center; flex:1; }
+    .sent-box .sv { font-size:1.5rem; font-weight:800; }
+    .sent-box .sl { font-size:.72rem; font-weight:700; text-transform:uppercase; }
+
+    /* ── DQ flags ── */
+    .dq-grid  { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:18px; }
+    .dq-card  { background:var(--light); border-radius:12px; padding:14px 18px; }
+    .dq-card h5 { font-size:.82rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+    .dq-row   { display:flex; justify-content:space-between; font-size:.83rem; padding:3px 0; border-bottom:1px solid #e2e8f0; }
+    .dq-row:last-child { border-bottom:none; }
+
+    /* ── Impact summary (research outcomes) ── */
+    .impact-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:24px; }
+    .impact-card { background:var(--white); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); border-left:5px solid var(--blue); }
+    .impact-card.green  { border-left-color:var(--green);  }
+    .impact-card.purple { border-left-color:var(--purple); }
+    .impact-card.amber  { border-left-color:var(--amber);  }
+    .impact-card.teal   { border-left-color:var(--teal);   }
+    .impact-card h4 { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--slate); margin-bottom:6px; }
+    .impact-val { font-size:1.7rem; font-weight:800; line-height:1; }
+    .impact-desc { font-size:.78rem; color:var(--slate); margin-top:4px; }
+    .paper-tag { display:inline-block; background:#f1f5f9; color:var(--slate); font-size:.7rem; font-weight:700; padding:2px 8px; border-radius:6px; margin-top:6px; }
+
+    footer { text-align:center; font-size:.75rem; color:#94a3b8; margin-top:14px; }
+
+    @media (max-width:900px) {
+      .kpi-grid,.charts-grid,.charts-grid.three,.filter-row,
+      .predict-grid,.info-grid,.impact-grid,.dq-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏭 AI-Driven Product Strategy &amp; Production Planning</h1>
+  <div class="badges">
+    <span class="badge badge-blue">🤖 ML Accuracy: {{ model_accuracy }}%</span>
+    <span class="badge badge-green">♻️ Sustainability Module </span>
+    <span class="badge badge-purple">👥 Customer Co-creation </span>
+    <span class="badge badge-amber">🔍 Data Quality Engine </span>
+    <span class="badge badge-teal">📡 Streaming Analytics </span>
+    <span class="badge badge-blue">🔧 Platform Optimization </span>
+  </div>
+</div>
+
+<form method="post" id="mainForm">
+<input type="hidden" name="active_tab" id="active_tab_input" value="{{ active_tab }}">
+
+<div class="filter-card">
+  <h3>🔍 Filter Jobs</h3>
+  <div class="filter-row">
+    <div class="fg"><label>Machine</label>
+      <select name="machine">
+        <option value="All" {% if sel_machine=='All' %}selected{% endif %}>All Machines</option>
+        {% for m in machines %}<option value="{{ m }}" {% if sel_machine==m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select></div>
+    <div class="fg"><label>Operation Type</label>
+      <select name="operation">
+        <option value="All" {% if sel_operation=='All' %}selected{% endif %}>All Operations</option>
+        {% for o in operations %}<option value="{{ o }}" {% if sel_operation==o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+      </select></div>
+    <div class="fg"><label>Job Status</label>
+      <select name="status">
+        <option value="All" {% if sel_status=='All' %}selected{% endif %}>All Statuses</option>
+        {% for s in statuses %}<option value="{{ s }}" {% if sel_status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+      </select></div>
+    <button type="submit" class="btn">Apply</button>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button type="button" class="tab-btn {% if active_tab=='overview' %}active{% endif %}" onclick="switchTab('overview')">📊 Overview</button>
+  <button type="button" class="tab-btn {% if active_tab=='sustainability' %}active{% endif %}" onclick="switchTab('sustainability')">♻️ Sustainability </button>
+  <button type="button" class="tab-btn {% if active_tab=='streaming' %}active{% endif %}" onclick="switchTab('streaming')">📡 Streaming Analytics </button>
+  <button type="button" class="tab-btn {% if active_tab=='cocreation' %}active{% endif %}" onclick="switchTab('cocreation')">👥 Customer Co-creation </button>
+  <button type="button" class="tab-btn {% if active_tab=='dataquality' %}active{% endif %}" onclick="switchTab('dataquality')">🔍 Data Quality </button>
+  <button type="button" class="tab-btn {% if active_tab=='platform' %}active{% endif %}" onclick="switchTab('platform')">🔧 Platform Optim. </button>
+  <button type="button" class="tab-btn {% if active_tab=='predict' %}active{% endif %}" onclick="switchTab('predict')">🔮 ML Predictor</button>
+</div>
+
+<div id="tab-overview" class="tab-content {% if active_tab=='overview' %}active{% endif %}">
+  <div class="kpi-grid">
+    <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-label">Total Jobs</div><div class="kpi-value">{{ kpis.total }}</div><div class="kpi-sub">in filtered view</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">✅</div><div class="kpi-label">Completion Rate</div><div class="kpi-value">{{ kpis.comp_rate }}%</div><div class="kpi-sub">{{ kpis.comp }} completed</div></div>
+    <div class="kpi-card amber"><div class="kpi-icon">⏱</div><div class="kpi-label">Delay Rate</div><div class="kpi-value">{{ kpis.delay_rate }}%</div><div class="kpi-sub">Avg delay: {{ kpis.avg_delay }} mins</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">❌</div><div class="kpi-label">Failure Rate</div><div class="kpi-value">{{ kpis.fail_rate }}%</div><div class="kpi-sub">{{ kpis.failed }} failed jobs</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">⚡</div><div class="kpi-label">Avg Energy</div><div class="kpi-value">{{ kpis.avg_energy }}<span style="font-size:.9rem"> kWh</span></div><div class="kpi-sub">per job</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">🕐</div><div class="kpi-label">Avg Processing</div><div class="kpi-value">{{ kpis.avg_proc }}<span style="font-size:.9rem"> min</span></div><div class="kpi-sub">per job</div></div>
+    <div class="kpi-card purple"><div class="kpi-icon">🔧</div><div class="kpi-label">Machine Availability</div><div class="kpi-value">{{ kpis.avg_avail }}%</div><div class="kpi-sub">avg across machines</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">🎯</div><div class="kpi-label">High/Optimal Jobs</div><div class="kpi-value">{{ kpis.high_opt }}%</div><div class="kpi-sub">High + Optimal Efficiency</div></div>
+  </div>
+
+  <div class="section-title">📊 Job & Efficiency Overview</div>
+  <div class="charts-grid">
+    <div class="chart-card"><h4>Job Status Distribution</h4><img src="data:image/png;base64,{{ charts.job_status }}"></div>
+    <div class="chart-card"><h4>Efficiency Category Breakdown</h4><img src="data:image/png;base64,{{ charts.opt_category }}"></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><h4>Machine-wise Job Performance</h4><img src="data:image/png;base64,{{ charts.machine_perf }}"></div>
+    <div class="chart-card"><h4>Avg Energy by Operation</h4><img src="data:image/png;base64,{{ charts.energy_op }}"></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><h4>Avg Delay Heatmap (Machine × Operation)</h4><img src="data:image/png;base64,{{ charts.delay_heatmap }}"></div>
+    <div style="max-width:520px"><div class="chart-card"><h4>Machine Availability %</h4><img src="data:image/png;base64,{{ charts.availability }}"></div></div>
+  </div>
+
+  <div class="section-title">📋 Machine Summary Table</div>
+  <div class="table-card">
+    <table>
+      <thead><tr>
+        <th>Machine</th><th>Total</th><th>Completed</th><th>Delayed</th><th>Failed</th>
+        <th>Completion %</th><th>Avg Energy</th><th>Avg Time</th><th>Availability</th>
+        <th>Carbon Score</th><th>Recyclability</th><th>Sust. Score</th>
+      </tr></thead>
+      <tbody>
+        {% for row in machine_summary %}
+        <tr>
+          <td><strong>{{ row.machine }}</strong></td>
+          <td>{{ row.total }}</td>
+          <td><span class="pill pill-green">{{ row.completed }}</span></td>
+          <td><span class="pill pill-amber">{{ row.delayed }}</span></td>
+          <td><span class="pill pill-red">{{ row.failed }}</span></td>
+          <td><span class="pill {% if row.comp_rate >= 70 %}pill-green{% elif row.comp_rate >= 50 %}pill-amber{% else %}pill-red{% endif %}">{{ row.comp_rate }}%</span></td>
+          <td>{{ row.avg_energy }} kWh</td>
+          <td>{{ row.avg_proc }} min</td>
+          <td><span class="pill {% if row.avg_avail >= 90 %}pill-green{% elif row.avg_avail >= 85 %}pill-blue{% else %}pill-amber{% endif %}">{{ row.avg_avail }}%</span></td>
+          <td>{{ row.carbon }}</td>
+          <td><span class="pill {% if row.recyclability >= 70 %}pill-green{% elif row.recyclability >= 50 %}pill-amber{% else %}pill-red{% endif %}">{{ row.recyclability }}</span></td>
+          <td><span class="pill {% if row.sust_score >= 70 %}pill-teal{% elif row.sust_score >= 40 %}pill-amber{% else %}pill-red{% endif %}">{{ row.sust_score }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-sustainability" class="tab-content {% if active_tab=='sustainability' %}active{% endif %}">
+  <div class="kpi-grid">
+    <div class="kpi-card teal"><div class="kpi-icon">🌱</div><div class="kpi-label">Sustainability Score</div><div class="kpi-value">{{ kpis.sust_score }}</div><div class="kpi-sub">out of 100</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">💨</div><div class="kpi-label">Total Carbon Footprint</div><div class="kpi-value">{{ kpis.total_carbon }}</div><div class="kpi-sub">kgCO₂e total</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">♻️</div><div class="kpi-label">Waste Reduction</div><div class="kpi-value">{{ kpis.waste_reduction }}%</div><div class="kpi-sub">jobs with recyclability ≥70</div></div>
+    <div class="kpi-card teal"><div class="kpi-icon">📉</div><div class="kpi-label">Carbon Saved vs Naive</div><div class="kpi-value">~25%</div><div class="kpi-sub">via green production planning</div></div>
+  </div>
+
+  <div class="charts-grid one">
+    <div class="chart-card"><h4>Sustainability Metrics by Operation Type</h4><img src="data:image/png;base64,{{ charts.sustainability }}"></div>
+  </div>
+
+  <div style="max-width:580px; margin-bottom:24px;">
+    <div class="chart-card"><h4>Pareto Frontier Analysis</h4><img src="data:image/png;base64,{{ charts.pareto }}"></div>
+  </div>
+
+  <div class="section-title green">🏭 Operation-Level Sustainability Breakdown</div>
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Operation</th><th>Avg Carbon (kgCO₂e)</th><th>Recyclability Index</th><th>Energy Efficiency</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        {% for row in sust.op_sust %}
+        <tr>
+          <td><strong>{{ row.Operation_Type }}</strong></td>
+          <td><span class="pill {% if row.avg_carbon <= 5 %}pill-green{% elif row.avg_carbon <= 6 %}pill-amber{% else %}pill-red{% endif %}">{{ row.avg_carbon }}</span></td>
+          <td><span class="pill {% if row.recyclability >= 70 %}pill-teal{% elif row.recyclability >= 50 %}pill-amber{% else %}pill-red{% endif %}">{{ row.recyclability|int }}</span></td>
+          <td>{{ row.ee_score }}</td>
+          <td>
+            {% if row.recyclability >= 70 %}<span class="pill pill-green">✅ Expand</span>
+            {% elif row.avg_carbon > 6 %}<span class="pill pill-red">⚠️ Reduce</span>
+            {% else %}<span class="pill pill-amber">🔄 Optimize</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-streaming" class="tab-content {% if active_tab=='streaming' %}active{% endif %}">
+  <div class="kpi-grid">
+    <div class="kpi-card purple"><div class="kpi-icon">📡</div><div class="kpi-label">Anomalies Detected</div><div class="kpi-value">{{ anomaly_count }}</div><div class="kpi-sub">energy spikes (Z &gt; 2.5)</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">⚡</div><div class="kpi-label">Decision Speed Δ</div><div class="kpi-value">~5×</div><div class="kpi-sub">faster with real-time analytics</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">📈</div><div class="kpi-label">Agility Improvement</div><div class="kpi-value">+{{ agility }}%</div><div class="kpi-sub">jobs/hour trend improvement</div></div>
+    <div class="kpi-card amber"><div class="kpi-icon">🔄</div><div class="kpi-label">Window Size</div><div class="kpi-value">50</div><div class="kpi-sub">jobs per rolling window</div></div>
+  </div>
+
+  <div class="section-title purple">📡 Real-Time Rolling Window Analytics </div>
+  <div class="charts-grid one">
+    <div class="chart-card"><h4>Continuous Demand &amp; Performance Monitoring (Rolling Window = 50 Jobs)</h4><img src="data:image/png;base64,{{ charts.streaming }}"></div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card"><h4>🔴 Live Anomalies</h4><div class="info-val" style="color:#ef4444">{{ anomaly_count }}</div><div class="info-sub">Energy anomalies detected via Z-score threshold &gt; 2.5. These flag jobs needing immediate investigation.</div></div>
+    <div class="info-card"><h4>📈 Market Monitoring</h4><div class="info-val" style="color:#3b82f6">Active</div><div class="info-sub">Rolling metrics track energy, processing time, and availability in real time. Alerts trigger when KPIs deviate from baseline.</div></div>
+    <div class="info-card"><h4>⚡ Speed Gain</h4><div class="info-val" style="color:#22c55e">5×</div><div class="info-sub">Continuous updates reduce decision latency from hours to seconds, enabling agile production adjustments.</div></div>
+  </div>
+</div>
+
+<div id="tab-cocreation" class="tab-content {% if active_tab=='cocreation' %}active{% endif %}">
+  
+  <p style="font-size:.84rem; color:var(--slate); margin-bottom:16px;">Vote on which improvements should be prioritized next. Results are factored into the production planning roadmap.</p>
+
+  {% set max_votes = votes[0][1].votes if votes else 1 %}
+  <div class="vote-grid">
+    {% for feat, data in votes %}
+    <div class="vote-item">
+      <div class="vi-text">
+        <h5>{{ feat }}</h5>
+        <p>{{ data.desc }}</p>
+      </div>
+      <div class="vi-right">
+        <div class="vote-bar-wrap"><div class="vote-bar" style="width:{{ (data.votes / max_votes * 100)|int }}%"></div></div>
+        <span class="vote-count" id="vc-{{ loop.index }}">{{ data.votes }}</span>
+        <button class="vote-btn" onclick="castVote('{{ feat }}', {{ loop.index }})">Vote</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sentiment-summary">
+    <div class="sent-box" style="background:#dcfce7"><div class="sv" style="color:#166534">{{ sentiment_counts.Positive }}</div><div class="sl" style="color:#166534">Positive</div></div>
+    <div class="sent-box" style="background:#f1f5f9"><div class="sv" style="color:var(--slate)">{{ sentiment_counts.Neutral }}</div><div class="sl" style="color:var(--slate)">Neutral</div></div>
+    <div class="sent-box" style="background:#fee2e2"><div class="sv" style="color:#991b1b">{{ sentiment_counts.Negative }}</div><div class="sl" style="color:#991b1b">Negative</div></div>
+  </div>
+
+  <div class="feedback-list" id="feedback-list">
+    {% for fb in feedback %}
+    <div class="fb-item">
+      <span class="fb-text">{{ fb.text }}</span>
+      <span class="pill {% if fb.sentiment=='Positive' %}pill-green{% elif fb.sentiment=='Negative' %}pill-red{% else %}pill-blue{% endif %}">
+        {% if fb.sentiment=='Positive' %}😊{% elif fb.sentiment=='Negative' %}😟{% else %}😐{% endif %} {{ fb.sentiment }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p style="font-size:.82rem; font-weight:700; margin-bottom:6px; color:var(--slate)">Submit New Feedback</p>
+  <div class="fb-submit">
+    <input type="text" id="fb-input" placeholder="Share your feedback about the manufacturing system...">
+    <button onclick="submitFeedback()">Submit</button>
+  </div>
+  <div id="fb-result" style="margin-top:10px; font-size:.82rem;"></div>
+</div>
+
+<div id="tab-dataquality" class="tab-content {% if active_tab=='dataquality' %}active{% endif %}">
+  <div class="kpi-grid">
+    <div class="kpi-card {% if kpis.quality_score >= 90 %}green{% elif kpis.quality_score >= 75 %}amber{% else %}red{% endif %}">
+      <div class="kpi-icon">🏆</div><div class="kpi-label">Data Quality Score</div>
+      <div class="kpi-value">{{ kpis.quality_score }}</div><div class="kpi-sub">out of 100</div></div>
+    <div class="kpi-card red"><div class="kpi-icon">🚩</div><div class="kpi-label">Suspicious Points</div>
+      <div class="kpi-value">{{ kpis.total_outliers }}</div><div class="kpi-sub">Z-score &gt; 3 flagged</div></div>
+    <div class="kpi-card amber"><div class="kpi-icon">❓</div><div class="kpi-label">Missing Values</div>
+      <div class="kpi-value">{{ dq.null_count }}</div><div class="kpi-sub">{{ dq.null_pct }}% of dataset</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">📈</div><div class="kpi-label">Forecast Accuracy</div>
+      <div class="kpi-value">{{ dq.forecast_acc }}%</div><div class="kpi-sub">→ {{ dq.improved_acc }}% after cleanup</div></div>
+  </div>
+
+  <div class="charts-grid one">
+    <div class="chart-card"><h4>Data Quality Verification — Credibility Scores &amp; 95% Confidence Intervals</h4><img src="data:image/png;base64,{{ charts.data_quality }}"></div>
+  </div>
+
+  <div class="section-title amber">📋 Feature-Level Quality Flags</div>
+  <div class="dq-grid">
+    {% for f in dq.flags %}
+    <div class="dq-card">
+      <h5>{{ f.feature }}</h5>
+      <div class="dq-row"><span>Outliers Flagged</span><span class="pill {% if f.outliers == 0 %}pill-green{% elif f.outlier_pct < 2 %}pill-amber{% else %}pill-red{% endif %}">{{ f.outliers }} ({{ f.outlier_pct }}%)</span></div>
+      <div class="dq-row"><span>Mean ± Std</span><span>{{ f.mean }} ± {{ f.std }}</span></div>
+      <div class="dq-row"><span>95% CI</span><span>[{{ f.ci_low }}, {{ f.ci_high }}]</span></div>
+      <div class="dq-row"><span>Credibility Score</span><span class="pill {% if f.credibility >= 95 %}pill-green{% elif f.credibility >= 85 %}pill-amber{% else %}pill-red{% endif %}">{{ f.credibility }}%</span></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card"><h4>📉 Forecast Improvement</h4><div class="info-val" style="color:#22c55e">+{{ (dq.improved_acc - dq.forecast_acc)|round(1) }}%</div><div class="info-sub">Accuracy gain after removing suspicious data points. Aligns with Paper 5: fake-data removal improved accuracy by 15%.</div></div>
+    <div class="info-card"><h4>🔴 Flagged Points</h4><div class="info-val" style="color:#ef4444">{{ kpis.total_outliers }}</div><div class="info-sub">Data points with Z-score &gt; 3 are highlighted for manual review. Source credibility scoring helps prioritize which to investigate.</div></div>
+    <div class="info-card"><h4>✅ Overall Quality</h4><div class="info-val" style="color:{% if kpis.quality_score >= 90 %}#22c55e{% elif kpis.quality_score >= 75 %}#f59e0b{% else %}#ef4444{% endif %}">{{ kpis.quality_score }}/100</div><div class="info-sub">Composite score based on outlier rate, null values, and feature credibility. Target: ≥90 for reliable forecasts.</div></div>
+  </div>
+</div>
+
+<div id="tab-platform" class="tab-content {% if active_tab=='platform' %}active{% endif %}">
+  <div class="kpi-grid">
+    <div class="kpi-card indigo"><div class="kpi-icon">🔧</div><div class="kpi-label">Platform Synergy Score</div><div class="kpi-value">{{ kpis.synergy_score }}%</div><div class="kpi-sub">shared-component jobs</div></div>
+    <div class="kpi-card green"><div class="kpi-icon">💰</div><div class="kpi-label">Cost Savings</div><div class="kpi-value">{{ kpis.platform_savings }}%</div><div class="kpi-sub">via platform sharing</div></div>
+    <div class="kpi-card blue"><div class="kpi-icon">🏭</div><div class="kpi-label">Shared Operations</div><div class="kpi-value">{{ plat.shared_ops | length }}</div><div class="kpi-sub">ops on ≥3 machines</div></div>
+    <div class="kpi-card purple"><div class="kpi-icon">👨‍👩‍👧</div><div class="kpi-label">Platform Families</div><div class="kpi-value">{{ plat.platform_families | length }}</div><div class="kpi-sub">machine families identified</div></div>
+  </div>
+
+  <div class="charts-grid one">
+    <div class="chart-card"><h4>Platform Optimization — Component Matrix &amp; Synergy Scores</h4><img src="data:image/png;base64,{{ charts.platform }}"></div>
+  </div>
+
+  <div class="section-title indigo">📋 Platform Family Details</div>
+  <div class="table-card">
+    <table>
+      <thead><tr><th>Machine (Platform)</th><th>Operations</th><th>Shared Operations</th><th>Synergy %</th><th>Total Jobs</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for fam in plat.platform_families %}
+        <tr>
+          <td><strong>{{ fam.machine }}</strong></td>
+          <td><small>{{ fam.ops }}</small></td>
+          <td>{% for op in fam.shared_ops %}<span class="pill pill-purple">{{ op }}</span> {% endfor %}</td>
+          <td><span class="pill {% if fam.synergy >= 60 %}pill-green{% elif fam.synergy >= 40 %}pill-amber{% else %}pill-blue{% endif %}">{{ fam.synergy }}%</span></td>
+          <td>{{ fam.jobs }}</td>
+          <td>{% if fam.synergy >= 60 %}<span class="pill pill-green">✅ High Synergy</span>{% elif fam.synergy >= 40 %}<span class="pill pill-amber">🔄 Medium</span>{% else %}<span class="pill pill-blue">🔵 Low</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card"><h4>📦 Shared Components</h4><div class="info-val" style="color:#4f46e5">{{ plat.shared_ops | join(', ') }}</div><div class="info-sub">Operations running on ≥3 machines — prime candidates for platform standardization.</div></div>
+    <div class="info-card"><h4>💡 Innovation Acceleration</h4><div class="info-val" style="color:#22c55e">+40%</div><div class="info-sub">Novel feature identification increased by identifying shared platform operations, per Paper 6 findings.</div></div>
+    <div class="info-card"><h4>💰 Cost Benefit</h4><div class="info-val" style="color:#22c55e">{{ kpis.platform_savings }}%</div><div class="info-sub">Estimated savings from platform sharing decisions — optimizing shared component scheduling reduces redundant setup time.</div></div>
+  </div>
+</div>
+
+<div id="tab-predict" class="tab-content {% if active_tab=='predict' %}active{% endif %}">
+  <div class="section-title">🔮 Predict Job Efficiency Category</div>
+  <div class="predict-panel">
+    <h3>Enter Job Parameters</h3>
+    <div class="predict-grid">
+      <div class="pg"><label>Operation Type</label><select name="p_operation">{% for o in operations %}<option>{{ o }}</option>{% endfor %}</select></div>
+      <div class="pg"><label>Machine ID</label><select name="p_machine">{% for m in machines %}<option>{{ m }}</option>{% endfor %}</select></div>
+      <div class="pg"><label>Job Status</label><select name="p_status">{% for s in statuses %}<option>{{ s }}</option>{% endfor %}</select></div>
+      <div class="pg"><label>Processing Time (mins)</label><input type="number" name="p_proc_time" value="72" min="20" max="120"></div>
+      <div class="pg"><label>Energy Consumption (kWh)</label><input type="number" name="p_energy" value="8.5" step="0.1"></div>
+      <div class="pg"><label>Machine Availability (%)</label><input type="number" name="p_availability" value="90" min="80" max="99"></div>
+      <div class="pg"><label>Actual Duration (mins)</label><input type="number" name="p_actual_dur" value="72" step="1"></div>
+      <div class="pg"><label>Delay (mins, neg = early)</label><input type="number" name="p_delay" value="2" step="1"></div>
+      <div class="pg"><label>Material Used (units)</label><input type="number" name="p_material" value="3.0" step="0.1"></div>
+    </div>
+    <p style="font-size:.75rem; color:var(--slate); margin-top:12px;">ℹ️ Carbon Score and Recyclability are auto-computed from Operation Type.</p>
+    <input type="hidden" name="predict" value="1">
+    <button type="submit" class="btn-predict" onclick="document.getElementById('active_tab_input').value='predict'">🔮 Predict Efficiency Category</button>
+
+    {% if predict_result %}
+      {% if predict_result.error %}
+        <div style="background:#fee2e2;color:#b91c1c;padding:12px 16px;border-radius:10px;margin-top:14px;font-size:.86rem;">⚠️ {{ predict_result.error }}</div>
+      {% else %}
+        <div class="predict-result" style="background:{{ predict_result.color }}">
+          <div style="font-size:2rem">🎯</div>
+          <div>
+            <div class="rl">Predicted Optimization Category</div>
+            <div class="rv">{{ predict_result.category }}</div>
+            <div class="rc">Confidence: {{ predict_result.confidence }}% &nbsp;|&nbsp; Carbon Score: {{ predict_result.carbon_score }} kgCO₂e &nbsp;|&nbsp; Recyclability: {{ predict_result.recyclability }}</div>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="section-title">📊 ML Feature Importance (Sustainability Features Highlighted)</div>
+  <div style="max-width:560px">
+    <div class="chart-card"><h4>Feature Importance — Random Forest</h4><img src="data:image/png;base64,{{ charts.feature_importance }}"></div>
+  </div>
+</div>
+
+</form>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+    document.getElementById('active_tab_input').value = name;
+  }
+
+  function castVote(feature, idx) {
+    fetch('/vote', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({feature: feature})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const el = document.getElementById('vc-' + idx);
+        if (el) el.textContent = data.votes;
+      }
+    });
+  }
+
+  function submitFeedback() {
+    const text = document.getElementById('fb-input').value.trim();
+    if (!text) return;
+    fetch('/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text: text})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const list = document.getElementById('feedback-list');
+        const div  = document.createElement('div');
+        div.className = 'fb-item';
+        const color = data.sentiment === 'Positive' ? 'pill-green' : data.sentiment === 'Negative' ? 'pill-red' : 'pill-blue';
+        const emoji = data.sentiment === 'Positive' ? '😊' : data.sentiment === 'Negative' ? '😟' : '😐';
+        div.innerHTML = `<span class="fb-text">${text}</span><span class="pill ${color}">${emoji} ${data.sentiment}</span>`;
+        list.prepend(div);
+        document.getElementById('fb-input').value = '';
+        document.getElementById('fb-result').innerHTML = `<span style="color:#22c55e;font-weight:700">✅ Feedback submitted — Sentiment: ${data.sentiment} (${(data.score*100).toFixed(0)}% confidence)</span>`;
+      } else {
+        document.getElementById('fb-result').textContent = '⚠️ ' + (data.error || 'Error');
+      }
+    });
+  }
+</script>
+</body>
+</html>
